@@ -79,6 +79,12 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/login", (req, res) => {
   const loginID = req.body.username;
-  res.cookie("username", loginID )
+  res.cookie("username", loginID);
+  res.redirect("/urls");
+})
+
+app.post("/logout", (req, res) => {
+  const loginID = req.body.username;
+  res.clearCookie("username", loginID)
   res.redirect("/urls")
 })
