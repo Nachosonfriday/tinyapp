@@ -1,6 +1,8 @@
 const express = require("express");
+const cookieParser = require('cookie-parser')
 const res = require("express/lib/response");
 const app = express();
+app.use(cookieParser())
 const PORT = 8080; // default port 8080
 
 const bodyParser = require("body-parser");
@@ -43,7 +45,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  console.log("req params", req.params.shortURL)
+  // console.log("req params", req.params.shortURL)
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
