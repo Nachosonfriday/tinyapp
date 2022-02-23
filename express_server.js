@@ -14,6 +14,14 @@ function generateRandomString() {
   return Math.random().toString(36).slice(2, 8); 
 };
 
+let users = {
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  }
+}
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -87,4 +95,20 @@ app.post("/logout", (req, res) => {
   const loginID = req.body.username;
   res.clearCookie("username", loginID)
   res.redirect("/urls")
+})
+
+app.get("/register", (req, res) => {
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"], };
+  res.render("register", templateVars);
+})
+
+app.post("/register", (req,res) => {
+  const randomID = generateRandomString()
+  users[randomID] = {
+    id: [randomID],
+    email: req.body.email,
+    password: req.body.password
+  }
+  res.cookie("user_id", randomID)
+  return res.redirect("/urls")
 })
