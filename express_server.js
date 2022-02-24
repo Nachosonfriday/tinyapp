@@ -69,6 +69,10 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+  if (!templateVars.user) {
+    console.log("You are not logged in!")
+    return res.status(403).redirect("/login");
+  }
   res.render("urls_new", templateVars);
 });
 
