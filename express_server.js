@@ -17,8 +17,8 @@ function generateRandomString() {
 let users = {
   "userRandomID": {
     id: "userRandomID", 
-    email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    email: "a@a.com", 
+    password: "a"
   }
 }
 
@@ -30,6 +30,18 @@ const emailChecker = (email, usersDB) => {
   return false  
   }
 }
+
+const getIDFromEmail = function (email, obj) {
+  for(let key in obj) {
+    console.log ("this is the key", key)
+    if (obj[key].email === email) {
+      console.log ("this is the objkey", obj[key])
+      console.log ("this is the email", obj[key][email])
+      return obj[key].id;
+    }
+  }
+  return null;
+};
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -95,7 +107,16 @@ app.post("/urls/:id", (req, res) => {
 })
 
 app.post("/login", (req, res) => {
-  const loginID = req.body.username;
+  const email = req.body.email
+  const password = req.body.password
+  let loginID = getIDFromEmail(email, users)
+  console.log("login ID", loginID)
+  if (!loginID) {
+     return res.status(403).send("Error 403: Email doesn't exist");
+  }
+  if (users[loginID].password !== password){
+    return res.status(403).send("Error 403: Password doesn't match");
+  }
   res.cookie("user_id", loginID);
   res.redirect("/urls");
 })
@@ -128,10 +149,11 @@ app.post("/register", (req,res) => {
   }
 
   users[randomID] = {
-    id: [randomID],
+    id: randomID,
     email: req.body.email,
     password: req.body.password
   }
+  
   res.cookie("user_id", randomID)
   return res.redirect("/urls")
 })
