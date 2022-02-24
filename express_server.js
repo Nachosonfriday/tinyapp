@@ -22,6 +22,15 @@ let users = {
   }
 }
 
+const emailChecker = (email, usersDB) => {
+  for (let user in usersDB) {
+    if (user.email === email) {
+      return false
+    }
+  return true  
+  }
+}
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -44,18 +53,18 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"], };
+  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"], };
+  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   // console.log("req params", req.params.shortURL)
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"], };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
 });
 
@@ -98,12 +107,26 @@ app.post("/logout", (req, res) => {
 })
 
 app.get("/register", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"], };
+  const templateVars = { user: users[req.cookies["user_id"]] };
   res.render("register", templateVars);
 })
 
 app.post("/register", (req,res) => {
   const randomID = generateRandomString()
+  const email = req.body.email;
+
+  if (!req.body.email) {
+    res.status(400).send('Bad email 400');
+  }
+
+  if (!req.body.password) {
+    res.status(400).send('Bad password 400' );
+  } 
+  
+  if (emailChecker(email, users)) {
+    res.status(400).send('Email exists: Error 400');
+  }
+
   users[randomID] = {
     id: [randomID],
     email: req.body.email,
@@ -111,4 +134,8 @@ app.post("/register", (req,res) => {
   }
   res.cookie("user_id", randomID)
   return res.redirect("/urls")
+})
+
+app.get("/login", (req, res) => {
+   res.render("login")
 })
