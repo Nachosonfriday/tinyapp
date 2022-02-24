@@ -24,19 +24,17 @@ let users = {
 
 const emailChecker = (email, usersDB) => {
   for (let user in usersDB) {
-    if (user.email === email) {
-      return true
+    console.log(usersDB[email], email)
+    if (usersDB[user].email === email) {
+      return true 
     }
-  return false  
   }
+  return false 
 }
 
 const getIDFromEmail = function (email, obj) {
   for(let key in obj) {
-    console.log ("this is the key", key)
     if (obj[key].email === email) {
-      console.log ("this is the objkey", obj[key])
-      console.log ("this is the email", obj[key][email])
       return obj[key].id;
     }
   }
@@ -75,7 +73,6 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  // console.log("req params", req.params.shortURL)
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
 });
@@ -110,7 +107,6 @@ app.post("/login", (req, res) => {
   const email = req.body.email
   const password = req.body.password
   let loginID = getIDFromEmail(email, users)
-  console.log("login ID", loginID)
   if (!loginID) {
      return res.status(403).send("Error 403: Email doesn't exist");
   }
@@ -122,7 +118,7 @@ app.post("/login", (req, res) => {
 })
 
 app.post("/logout", (req, res) => {
-  const loginID = req.body.username;
+  const loginID = req.body.user_id;
   res.clearCookie("user_id", loginID)
   res.redirect("/urls")
 })
@@ -137,15 +133,13 @@ app.post("/register", (req,res) => {
   const email = req.body.email;
 
   if (!req.body.email) {
-    res.status(400).send('Bad email 400');
+    return res.status(400).send('Bad email 400');
   }
-
   if (!req.body.password) {
-    res.status(400).send('Bad password 400' );
+    return res.status(403).send('Bad password 400' );
   } 
-  
   if (emailChecker(email, users)) {
-    res.status(400).send('Email exists: Error 400');
+   return res.status(403).send('Email exists: Error 400');
   }
 
   users[randomID] = {
