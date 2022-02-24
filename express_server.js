@@ -25,9 +25,9 @@ let users = {
 const emailChecker = (email, usersDB) => {
   for (let user in usersDB) {
     if (user.email === email) {
-      return false
+      return true
     }
-  return true  
+  return false  
   }
 }
 
@@ -96,13 +96,13 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/login", (req, res) => {
   const loginID = req.body.username;
-  res.cookie("username", loginID);
+  res.cookie("user_id", loginID);
   res.redirect("/urls");
 })
 
 app.post("/logout", (req, res) => {
   const loginID = req.body.username;
-  res.clearCookie("username", loginID)
+  res.clearCookie("user_id", loginID)
   res.redirect("/urls")
 })
 
@@ -137,5 +137,6 @@ app.post("/register", (req,res) => {
 })
 
 app.get("/login", (req, res) => {
-   res.render("login")
+  const templateVars = { user: users[req.cookies["user_id"]] };
+   res.render("login", templateVars)
 })
