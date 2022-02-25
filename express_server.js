@@ -6,6 +6,7 @@ app.use(cookieParser())
 const PORT = 8080; // default port 8080
 
 const bodyParser = require("body-parser");
+const e = require("express");
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
@@ -21,6 +22,17 @@ let users = {
     password: "a"
   }
 }
+
+const urlDatabase = {
+  b6UTxQ: {
+      longURL: "https://www.tsn.ca",
+      userID: "userRandomID"
+  },
+  i3BoGr: {
+      longURL: "https://www.google.ca",
+      userID: "grgd334"
+  }
+};
 
 const emailChecker = (email, usersDB) => {
   for (let user in usersDB) {
@@ -49,18 +61,8 @@ const urlsForUser = function (userObj, obj) {
     }
   }
   return userURLS
+  
 }
-
-const urlDatabase = {
-  b6UTxQ: {
-      longURL: "https://www.tsn.ca",
-      userID: "userRandomID"
-  },
-  i3BoGr: {
-      longURL: "https://www.google.ca",
-      userID: "grgd334"
-  }
-};
 
 
 app.get("/", (req, res) => {
@@ -81,14 +83,13 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user = users[req.cookies["user_id"]]
-  const listOfURLS = urlsForUser(user, urlDatabase)
-  const templateVars = { urls: listOfURLS, user: users[req.cookies["user_id"]] };
-
-  if (!templateVars.user) {
+  
+  if (!user) {
     console.log("You are not logged in!")
     return res.status(403).send("You need to be logged in to access this area")
   }
-
+  const listOfURLS = urlsForUser(user, urlDatabase)
+  const templateVars = { urls: listOfURLS, user: users[req.cookies["user_id"]] };
   res.render("urls_index", templateVars);
 });
 
@@ -121,6 +122,12 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
+  const user = users[req.cookies["user_id"]]
+  
+  if (!user) {
+    console.log("You are not logged in!")
+    return res.status(403).send("You need to be logged in to access this area")
+  }
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
 
@@ -128,6 +135,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 })
 
 app.post("/urls/:id", (req, res) => {
+  const user = users[req.cookies["user_id"]]
+  
+  if (!user) {
+    console.log("You are not logged in!")
+    return res.status(403).send("You need to be logged in to access this area")
+  }
   const shortURL = req.params.id
   const newLongURL = req.body.name
   urlDatabase[shortURL].longURL =  newLongURL
