@@ -52,10 +52,6 @@ const urlDatabase = {
   }
 };
 
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -94,13 +90,14 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.post("/urls", (req, res) => {
   const newShortURL = generateRandomString()
-  console.log("new short URL", newShortURL)
-  console.log("long url from body", req.body.longURL)
   urlDatabase[newShortURL] = {longURL: req.body.longURL, userID:req.cookies["user_id"]};
   res.redirect(`/urls/${newShortURL}`);   
 });
 
 app.get("/u/:shortURL", (req, res) => {
+  if (!urlDatabase[req.params['shortURL']]) {
+    return res.status(404).send("Short URL is not in database")
+  }
   const longURL = urlDatabase[req.params['shortURL']].longURL
   res.redirect(longURL);
 });
