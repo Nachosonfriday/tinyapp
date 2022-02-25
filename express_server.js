@@ -41,14 +41,24 @@ const getIDFromEmail = function (email, obj) {
   return null;
 };
 
+const urlsForUser = function (userObj, obj) {
+  userURLS = {}
+  for (let key in obj) {
+    if (obj[key].userID === userObj.id) { 
+      userURLS[key] = obj[key]
+    }
+  }
+  return userURLS
+}
+
 const urlDatabase = {
   b6UTxQ: {
       longURL: "https://www.tsn.ca",
-      userID: "aJ48lW"
+      userID: "userRandomID"
   },
   i3BoGr: {
       longURL: "https://www.google.ca",
-      userID: "aJ48lW"
+      userID: "grgd334"
   }
 };
 
@@ -70,7 +80,15 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+  const user = users[req.cookies["user_id"]]
+  const listOfURLS = urlsForUser(user, urlDatabase)
+  const templateVars = { urls: listOfURLS, user: users[req.cookies["user_id"]] };
+
+  if (!templateVars.user) {
+    console.log("You are not logged in!")
+    return res.status(403).send("You need to be logged in to access this area")
+  }
+
   res.render("urls_index", templateVars);
 });
 
