@@ -1,6 +1,7 @@
 const express = require("express");
 const cookieParser = require('cookie-parser')
 const res = require("express/lib/response");
+const bcrypt = require('bcryptjs');
 const app = express();
 app.use(cookieParser())
 const PORT = 8080; // default port 8080
@@ -151,11 +152,13 @@ app.post("/urls/:id", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email
   const password = req.body.password
+  
   let loginID = getIDFromEmail(email, users)
   if (!loginID) {
      return res.status(403).send("Error 403: Email doesn't exist");
   }
-  if (users[loginID].password !== password){
+  if (!bcrypt.compareSync(password, users[loginID].password)){
+  // if (users[loginID].password !== password){
     return res.status(403).send("Error 403: Password doesn't match");
   }
   res.cookie("user_id", loginID);
@@ -176,6 +179,9 @@ app.get("/register", (req, res) => {
 app.post("/register", (req,res) => {
   const randomID = generateRandomString()
   const email = req.body.email;
+  const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  console.log("hash PW",hashedPassword)
 
   if (!req.body.email) {
     return res.status(400).send('Bad email 400');
@@ -190,7 +196,7 @@ app.post("/register", (req,res) => {
   users[randomID] = {
     id: randomID,
     email: req.body.email,
-    password: req.body.password
+    password: hashedPassword
   }
   
   res.cookie("user_id", randomID)
