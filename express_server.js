@@ -4,6 +4,8 @@ var cookieSession = require('cookie-session')
 const res = require("express/lib/response");
 const bcrypt = require('bcryptjs');
 const app = express();
+
+const { getIDFromEmail } = require('./helpers');
 // app.use(cookieParser())
 app.use(cookieSession({
   name: 'session',
@@ -50,15 +52,6 @@ const emailChecker = (email, usersDB) => {
   }
   return false 
 }
-
-const getIDFromEmail = function (email, obj) {
-  for(let key in obj) {
-    if (obj[key].email === email) {
-      return obj[key].id;
-    }
-  }
-  return null;
-};
 
 
 const urlsForUser = function (userId, obj) {
