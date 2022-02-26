@@ -84,7 +84,6 @@ app.get("/urls", (req, res) => {
   const user = req.session.user_id
   
   if (!user) {
-    console.log("You are not logged in!")
     return res.status(403).send("You need to be logged in to access this area")
   }
   const listOfURLS = urlsForUser(user, urlDatabase)
@@ -95,7 +94,6 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const templateVars = { urls: urlDatabase, "user": req.session.user_id, users: users };
   if (!templateVars.user) {
-    console.log("You are not logged in!")
     return res.status(403).redirect("/login");
   }
   res.render("urls_new", templateVars);
@@ -159,7 +157,8 @@ app.post("/login", (req, res) => {
   // if (users[loginID].password !== password){
     return res.status(403).send("Error 403: Password doesn't match");
   }
-  req.session.userId = user.id;
+ 
+  req.session.user_id = loginID;
   res.redirect("/urls");
 })
 
@@ -180,7 +179,7 @@ app.post("/register", (req,res) => {
   const email = req.body.email;
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
-  console.log("hash PW",hashedPassword)
+  
 
   if (!req.body.email) {
     return res.status(400).send('Please enter email 400');
@@ -198,7 +197,6 @@ app.post("/register", (req,res) => {
     password: hashedPassword
   }
   
-console.log("users object",users)
 
 
   // res.cookie("user_id", randomID)
