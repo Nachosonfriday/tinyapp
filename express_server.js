@@ -125,6 +125,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     console.log("You are not logged in!")
     return res.status(403).send("You need to be logged in to access this area")
   }
+
+  if (urlDatabase[req.params.id].userID !== req.session.user_id) {
+    return res.status(403).send("You need to be logged in to access this area")
+  }
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
 
@@ -133,11 +137,16 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
   const user = req.session.user_id
-  
+
   if (!user) {
     console.log("You are not logged in!")
     return res.status(403).send("You need to be logged in to access this area")
   }
+
+  if (urlDatabase[req.params.id].userID !== req.session.user_id) {
+    return res.status(403).send("You need to be logged in to access this area")
+  }
+
   const shortURL = req.params.id
   const newLongURL = req.body.name
   urlDatabase[shortURL].longURL =  newLongURL
