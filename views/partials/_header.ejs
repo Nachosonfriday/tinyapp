@@ -11,8 +11,9 @@
         
         
         <% if(user){ %>
+          <p>You are logged in as </p><%=` :` + users[user].email %>
         <form method="POST" action="/logout">
-          <p>You are logged in as: <%= user.email %></p>
+            
           <button type="submit" class="btn btn-primary">Logout</button>
         </form>
         <% } else{ %> 

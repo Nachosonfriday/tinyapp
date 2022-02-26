@@ -1,9 +1,15 @@
 const express = require("express");
 const cookieParser = require('cookie-parser')
+var cookieSession = require('cookie-session')
 const res = require("express/lib/response");
 const bcrypt = require('bcryptjs');
 const app = express();
-app.use(cookieParser())
+// app.use(cookieParser())
+app.use(cookieSession({
+  name: 'session',
+  keys: ['my', 'secret', 'keys'],
+}))
+
 const PORT = 8080; // default port 8080
 
 const bodyParser = require("body-parser");
@@ -54,17 +60,16 @@ const getIDFromEmail = function (email, obj) {
   return null;
 };
 
-const urlsForUser = function (userObj, obj) {
+
+const urlsForUser = function (userId, obj) {
   userURLS = {}
   for (let key in obj) {
-    if (obj[key].userID === userObj.id) { 
+    if (obj[key].userID === userId) { 
       userURLS[key] = obj[key]
     }
   }
-  return userURLS
-  
+  return userURLS  
 }
-
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -83,19 +88,19 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const user = users[req.cookies["user_id"]]
+  const user = req.session.user_id
   
   if (!user) {
     console.log("You are not logged in!")
     return res.status(403).send("You need to be logged in to access this area")
   }
   const listOfURLS = urlsForUser(user, urlDatabase)
-  const templateVars = { urls: listOfURLS, user: users[req.cookies["user_id"]] };
+  const templateVars = { urls: listOfURLS, "user": req.session.user_id, users: users };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+  const templateVars = { urls: urlDatabase, "user": req.session.user_id, users: users };
   if (!templateVars.user) {
     console.log("You are not logged in!")
     return res.status(403).redirect("/login");
@@ -104,13 +109,13 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies["user_id"]] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, "user": req.session.user_id, users: users };
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
   const newShortURL = generateRandomString()
-  urlDatabase[newShortURL] = {longURL: req.body.longURL, userID:req.cookies["user_id"]};
+  urlDatabase[newShortURL] = {longURL: req.body.longURL, userID:req.session["user_id"]};
   res.redirect(`/urls/${newShortURL}`);   
 });
 
@@ -123,7 +128,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const user = users[req.cookies["user_id"]]
+  const user = req.session.user_id
   
   if (!user) {
     console.log("You are not logged in!")
@@ -136,7 +141,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 })
 
 app.post("/urls/:id", (req, res) => {
-  const user = users[req.cookies["user_id"]]
+  const user = req.session.user_id
   
   if (!user) {
     console.log("You are not logged in!")
@@ -161,49 +166,54 @@ app.post("/login", (req, res) => {
   // if (users[loginID].password !== password){
     return res.status(403).send("Error 403: Password doesn't match");
   }
-  res.cookie("user_id", loginID);
+  req.session.userId = user.id;
   res.redirect("/urls");
 })
 
 app.post("/logout", (req, res) => {
   const loginID = req.body.user_id;
-  res.clearCookie("user_id", loginID)
+  // res.clearCookie("user_id", loginID)
+  req.session = null;
   res.redirect("/urls")
 })
 
 app.get("/register", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
+  const templateVars = { "user": req.session.user_id, users: users };
   res.render("register", templateVars);
 })
 
 app.post("/register", (req,res) => {
-  const randomID = generateRandomString()
+  const randomId = generateRandomString()
   const email = req.body.email;
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
   console.log("hash PW",hashedPassword)
 
   if (!req.body.email) {
-    return res.status(400).send('Bad email 400');
+    return res.status(400).send('Please enter email 400');
   }
   if (!req.body.password) {
-    return res.status(403).send('Bad password 400' );
+    return res.status(403).send('Please enter password 400' );
   } 
   if (emailChecker(email, users)) {
    return res.status(403).send('Email exists: Error 400');
   }
 
-  users[randomID] = {
-    id: randomID,
+   users[randomId] = { 
+    id: randomId,
     email: req.body.email,
     password: hashedPassword
   }
   
-  res.cookie("user_id", randomID)
+console.log("users object",users)
+
+
+  // res.cookie("user_id", randomID)
+  req.session.user_id = randomId;
   return res.redirect("/urls")
 })
 
 app.get("/login", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
+  const templateVars = { "user": req.session.user_id, users: users };
    res.render("login", templateVars)
 })
