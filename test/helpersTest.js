@@ -21,4 +21,10 @@ describe('getIDFromEmail', function() {
     const expectedUserID = "userRandomID";
     assert.equal(user, expectedUserID, "The values are equal")
   });
+
+  it('should return undefined when email does not exist in database', function() {
+    const user = getIDFromEmail("email@doesnotexist.com", testUsers)
+    const expectedResult = undefined;
+    assert.equal(user, expectedResult, "The values are not equal")
+  });
 });
